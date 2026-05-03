@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [dev]
 
 ### Added
+- `multiple` parameter on `DateTimeOption` for storing an array of date/time values; renders as a sortable, drag-and-drop reorderable list with add/remove controls
+- `DateTimeRangeOption` field for capturing one or more `[start_date, end_date]` ranges; supports `multiple` for sortable lists of ranges, single mode is constrained to one range
+- Array value validation (`render_array_error()`) on `DateTimeOption` when `multiple` is enabled and on `DateTimeRangeOption` (always)
+- `DateTimeRangeOption` JS handler with shared list/drag mixins for range items
+- CSS for `.wao-datetime-range` and `.wao-datetime-range-field` (stacked Start/End rows with uppercase labels)
 - `OptionsContainer` class for grouping options into collapsible, styled card sections with headers
 - Closure-based `fields` parameter on `OptionsContainer` for direct class instantiation inside output-buffered callbacks
 - Password reveal toggle button on `InputOption` (type `password`) with `prevent_reveal` parameter to disable

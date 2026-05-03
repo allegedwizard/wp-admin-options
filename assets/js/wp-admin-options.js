@@ -977,10 +977,62 @@
     /**
      * @param {Object} config
      * @param {string} config.key
-     * @param {string} config.date
-     * @param {string} config.time
+     * @param {string} [config.mode]   - 'single' (default) or 'multiple'
+     * @param {string} [config.date]   - single mode: pre-formatted date
+     * @param {string} [config.time]   - single mode: pre-formatted time
+     * @param {Array}  [config.items]  - multiple mode: [{ date, time, _uid }, ...]
      */
     DateTimeOption: function (config) {
+      if (config.mode === 'multiple') {
+        var opts = _merge(
+          _dragMixin(),
+          {
+            data: function () {
+              return {
+                items: config.items || []
+              };
+            },
+            computed: {
+              json: function () {
+                return JSON.stringify(this.items.map(function (item) {
+                  return ((item.date || '') + ' ' + (item.time || '')).trim();
+                }));
+              }
+            },
+            methods: {
+              addItem: function () {
+                this.items.push({
+                  date: '', time: '',
+                  _uid: 'dt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+                });
+              },
+              removeItem: function (index) {
+                this.items.splice(index, 1);
+              },
+              canMoveUp: function (index) { return index > 0; },
+              canMoveDown: function (index) { return index < this.items.length - 1; },
+              moveUp: function (index) {
+                if (!this.canMoveUp(index)) return;
+                var item = this.items[index];
+                var prev = this.items[index - 1];
+                this.items.splice(index - 1, 2, item, prev);
+              },
+              moveDown: function (index) {
+                if (!this.canMoveDown(index)) return;
+                var item = this.items[index];
+                var next = this.items[index + 1];
+                this.items.splice(index, 2, next, item);
+              }
+            },
+            mounted: function () {
+              $('#' + config.key + '-wrap').fadeIn();
+            }
+          }
+        );
+        Vue.createApp(opts).mount('#' + config.key + '-wrap');
+        return;
+      }
+
       Vue.createApp({
         data: function () {
           return {
@@ -998,6 +1050,76 @@
           $('#' + config.key + ' .option-wrap').fadeIn();
         }
       }).mount('#' + config.key);
+    },
+
+    /* -------------------------------------------------------------- */
+    /*  DateTimeRangeOption                                            */
+    /* -------------------------------------------------------------- */
+
+    /**
+     * @param {Object} config
+     * @param {string} config.key
+     * @param {string} config.mode    - 'single' or 'multiple'
+     * @param {Array}  config.items   - [{ start_date, start_time, end_date, end_time, _uid }, ...]
+     *
+     * Stored value shape (always an array of [start, end] pairs):
+     *   [["YYYY-MM-DD HH:MM:SS", "YYYY-MM-DD HH:MM:SS"], ...]
+     * Single mode is restricted to a single pair.
+     */
+    DateTimeRangeOption: function (config) {
+      var multiple = (config.mode === 'multiple');
+
+      var sources = [];
+      if (multiple) sources.push(_dragMixin());
+      sources.push({
+        data: function () {
+          return {
+            items: config.items || []
+          };
+        },
+        computed: {
+          json: function () {
+            return JSON.stringify(this.items.map(function (item) {
+              var start = ((item.start_date || '') + ' ' + (item.start_time || '')).trim();
+              var end   = ((item.end_date   || '') + ' ' + (item.end_time   || '')).trim();
+              return [start, end];
+            }));
+          }
+        },
+        methods: {
+          addItem: function () {
+            if (!multiple) return;
+            this.items.push({
+              start_date: '', start_time: '',
+              end_date: '',   end_time: '',
+              _uid: 'dtr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+            });
+          },
+          removeItem: function (index) {
+            if (!multiple) return;
+            this.items.splice(index, 1);
+          },
+          canMoveUp: function (index) { return index > 0; },
+          canMoveDown: function (index) { return index < this.items.length - 1; },
+          moveUp: function (index) {
+            if (!this.canMoveUp(index)) return;
+            var item = this.items[index];
+            var prev = this.items[index - 1];
+            this.items.splice(index - 1, 2, item, prev);
+          },
+          moveDown: function (index) {
+            if (!this.canMoveDown(index)) return;
+            var item = this.items[index];
+            var next = this.items[index + 1];
+            this.items.splice(index, 2, next, item);
+          }
+        },
+        mounted: function () {
+          $('#' + config.key + '-wrap').fadeIn();
+        }
+      });
+
+      Vue.createApp(_merge.apply(null, sources)).mount('#' + config.key + '-wrap');
     },
 
     /* -------------------------------------------------------------- */

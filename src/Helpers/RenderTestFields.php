@@ -6,6 +6,7 @@ use AllegedWizard\WPAdminOptions\Fields\AttachmentOption;
 use AllegedWizard\WPAdminOptions\Fields\BooleanCheckboxOption;
 use AllegedWizard\WPAdminOptions\Fields\ColorOption;
 use AllegedWizard\WPAdminOptions\Fields\DateTimeOption;
+use AllegedWizard\WPAdminOptions\Fields\DateTimeRangeOption;
 use AllegedWizard\WPAdminOptions\Fields\DurationOption;
 use AllegedWizard\WPAdminOptions\Fields\EditorOption;
 use AllegedWizard\WPAdminOptions\Fields\ExampleJsonMediaOption;
@@ -266,6 +267,32 @@ class RenderTestFields
                     'value'       => '2026-03-04 14:30:00',
                     'description' => 'A date and time picker.',
                     'help'        => 'Select a date and time. Stored in Y-m-d H:i:s format.',
+                ]);
+                new DateTimeOption([
+                    'key'         => '_test_datetime_multi',
+                    'label'       => 'DateTime (Multiple)',
+                    'multiple'    => true,
+                    'value'       => [ '2026-03-04 14:30:00', '2026-03-10 09:00:00' ],
+                    'description' => 'A sortable list of date/time entries.',
+                    'help'        => 'Add as many date/time entries as you need. Drag to reorder. Stored as an array of Y-m-d H:i:s strings.',
+                ]);
+                new DateTimeRangeOption([
+                    'key'         => '_test_datetime_range',
+                    'label'       => 'DateTime Range',
+                    'value'       => [ [ '2026-03-04 09:00:00', '2026-03-04 17:00:00' ] ],
+                    'description' => 'A start/end date range.',
+                    'help'        => 'Select start and end date/time. Stored as a one-element array of [start, end] pairs.',
+                ]);
+                new DateTimeRangeOption([
+                    'key'         => '_test_datetime_range_multi',
+                    'label'       => 'DateTime Range (Multiple)',
+                    'multiple'    => true,
+                    'value'       => [
+                        [ '2026-03-04 09:00:00', '2026-03-04 17:00:00' ],
+                        [ '2026-03-11 13:00:00', '2026-03-12 11:00:00' ],
+                    ],
+                    'description' => 'A sortable list of date ranges.',
+                    'help'        => 'Add as many date ranges as you need. Drag to reorder. Stored as an array of [start, end] pairs.',
                 ]);
                 new DurationOption([
                     'key'         => '_test_duration',
