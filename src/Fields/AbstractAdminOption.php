@@ -58,6 +58,15 @@ abstract class AbstractAdminOption
         'meta_key' => '',
         'meta_value' => '',
         'meta_compare' => '',
+
+        // Inline color picker for text inputs / textareas.
+        // - false: no color picker
+        // - true: enable with type 'default' (wp-color-picker / Iris)
+        // - 'default' | 'spectrum' | 'swatches': enable with that picker
+        // The picker's value is saved as a sibling meta key suffixed `_color`.
+        'with_color' => false,
+        'with_color_value' => '',
+        'with_color_swatches' => [],
     ];
 
     public function __construct( $args = [] ) {
@@ -213,20 +222,110 @@ abstract class AbstractAdminOption
         <?php
     }
 
+    /**
+     * Resolve the color picker type from the `with_color` arg.
+     * Returns null if no picker should render, or one of 'default'|'spectrum'|'swatches'.
+     */
+    protected function resolve_color_picker_type() {
+        $with = $this->args['with_color'];
+        if ( false === $with || null === $with || '' === $with ) {
+            return null;
+        }
+        if ( true === $with ) {
+            return 'default';
+        }
+        if ( is_string( $with ) && in_array( $with, [ 'default', 'spectrum', 'swatches' ], true ) ) {
+            return $with;
+        }
+        return 'default';
+    }
+
+    /**
+     * Whether to render an inline color picker alongside the input/textarea.
+     */
+    protected function should_render_with_color() {
+        return null !== $this->resolve_color_picker_type();
+    }
+
+    /**
+     * Render the inline color picker. Its value is saved under the sibling key `{key}_color`.
+     * Reuses ColorOption's JS / picker libraries.
+     */
+    protected function render_color_picker_inline() {
+        $type = $this->resolve_color_picker_type();
+        if ( null === $type ) {
+            return;
+        }
+
+        $key = esc_attr( $this->args['key'] );
+        $color_key = $key . '_color';
+        $color_value = $this->args['with_color_value'];
+        $swatches = $this->args['with_color_swatches'];
+
+        if ( 'swatches' === $type ) {
+            ?>
+            <span class="wao-input-color-inline" data-color-type="swatches">
+                <div id="wao-swatches-<?= $color_key; ?>" class="wao-swatches-wrap"></div>
+                <input type="hidden" name="<?= $color_key; ?>" value="<?= esc_attr( $color_value ); ?>">
+            </span>
+            <?php
+        } else {
+            ?>
+            <span class="wao-input-color-inline" data-color-type="<?= esc_attr( $type ); ?>">
+                <input type="text" name="<?= $color_key; ?>" value="<?= esc_attr( $color_value ); ?>" class="wao-input-color-picker">
+            </span>
+            <?php
+        }
+
+        $this->enqueue_color_picker_assets( $type );
+        $this->render_color_picker_init( $color_key, $type, $color_value, $swatches );
+    }
+
+    protected function enqueue_color_picker_assets( $type ) {
+        if ( 'spectrum' === $type ) {
+            wp_register_script( 'color-picker-spectrum', 'https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js' );
+            wp_register_style( 'color-picker-spectrum', 'https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css' );
+            wp_enqueue_style( 'color-picker-spectrum' );
+            wp_enqueue_script( 'color-picker-spectrum' );
+        } elseif ( 'default' === $type ) {
+            wp_enqueue_style( 'wp-color-picker' );
+            wp_enqueue_script( 'wp-color-picker' );
+        }
+        // swatches: no extra assets — Vue picker bundled in WPAdminOptions.ColorOption.
+    }
+
+    protected function render_color_picker_init( $color_key, $type, $value, $swatches ) {
+        add_action( 'admin_footer', function () use ( $color_key, $type, $value, $swatches ) {
+            $args = [ 'key' => $color_key, 'type' => $type ];
+            if ( 'swatches' === $type ) {
+                $args['swatches'] = $swatches;
+                $args['value'] = $value;
+            }
+            ?>
+            <script>window.addEventListener('load', function() {
+                WPAdminOptions.ColorOption(<?= json_encode( $args ); ?>);
+            });</script>
+            <?php
+        } );
+    }
+
     public function render_taxonomy_field() {
         $key = esc_attr( $this->args['key'] );
         $description = trim( $this->args['description'] );
         $input_attributes = $this->prepare_input_attributes();
         $show_copy = $this->should_enable_copy();
         $show_reveal = $this->should_show_password_reveal();
+        $show_color = $this->should_render_with_color();
+        $needs_wrap = $show_copy || $show_reveal || $show_color;
         ?>
         <div class="form-field" id="row-<?= $key; ?>">
             <?php $this->render_option_label( false ); ?>
-            <?php if ( $show_copy || $show_reveal ) : ?>
-            <div class="wao-copy-wrap">
+            <?php if ( $needs_wrap ) : ?>
+            <div class="wao-copy-wrap<?= $show_color ? ' wao-input-has-color' : ''; ?>">
                 <?php printf( '<input %s>', $input_attributes ); ?>
                 <?php if ( $show_reveal ) $this->render_password_reveal( $key ); ?>
                 <?php if ( $show_copy ) $this->render_copy_button( $key ); ?>
+                <?php if ( $show_color ) $this->render_color_picker_inline(); ?>
             </div>
             <?php else : ?>
             <?php printf( '<input %s>', $input_attributes ); ?>
@@ -247,15 +346,18 @@ abstract class AbstractAdminOption
         $input_attributes = $this->prepare_input_attributes();
         $show_copy = $this->should_enable_copy();
         $show_reveal = $this->should_show_password_reveal();
+        $show_color = $this->should_render_with_color();
+        $needs_wrap = $show_copy || $show_reveal || $show_color;
         ?>
         <tr id="row-<?= $key; ?>">
             <?php $this->render_option_label(); ?>
             <td>
-                <?php if ( $show_copy || $show_reveal ) : ?>
-                <div class="wao-copy-wrap">
+                <?php if ( $needs_wrap ) : ?>
+                <div class="wao-copy-wrap<?= $show_color ? ' wao-input-has-color' : ''; ?>">
                     <?php printf( '<input %s>', $input_attributes ); ?>
                     <?php if ( $show_reveal ) $this->render_password_reveal( $key ); ?>
                     <?php if ( $show_copy ) $this->render_copy_button( $key ); ?>
+                    <?php if ( $show_color ) $this->render_color_picker_inline(); ?>
                 </div>
                 <?php else : ?>
                 <?php printf( '<input %s>', $input_attributes ); ?>

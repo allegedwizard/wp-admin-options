@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [dev]
 
 ### Added
+- `with_color` parameter on `InputOption` and `TextareaOption` -- renders an inline color picker visually attached to the input/textarea (shared border, height, and corner radius). Accepts `true` / `'default'` (wp-color-picker / Iris), `'spectrum'`, or `'swatches'`. Picker value is saved as a sibling meta key suffixed `_color` (no extra wiring required).
+- `with_color_value` and `with_color_swatches` parameters on `AbstractAdminOption` for the inline color picker's initial value and preset swatch array.
+- Color picker helpers on `AbstractAdminOption`: `resolve_color_picker_type()`, `should_render_with_color()`, `render_color_picker_inline()`, `enqueue_color_picker_assets()`, `render_color_picker_init()`.
+- CSS for the inline color picker (`.wao-input-has-color`, `.wao-input-color-inline`, `.wao-textarea-color-wrap`) covering wp-color-picker, spectrum, and swatches modes -- all variants share the input's border, height, and right-edge corner radii.
+- Photoshop-style transparency checkerboard on the spectrum preview swatch and on `AttachmentOption` image thumbnails, so transparent images and translucent colors are clearly visible against light card backgrounds.
+- Action hooks on `OptionsContainer`: `wao_options_container_before_render`, `wao_options_container_body_start`, `wao_options_container_body_end`, `wao_options_container_after_render` -- all pass the container's `$args` for injection of header/footer markup.
+- Help tooltip viewport-anchored positioning -- on hover/focus, `.wao-help-text` switches to `position: fixed` with coords derived from the icon's bounding rect. Escapes any `overflow: hidden` ancestor (e.g. `.wao-container`) that would otherwise clip the tooltip. Auto-flips to the left of the icon (with a `.wao-help-text-flipped` caret) when it would overflow the right viewport edge.
 - `multiple` parameter on `DateTimeOption` for storing an array of date/time values; renders as a sortable, drag-and-drop reorderable list with add/remove controls
 - `DateTimeRangeOption` field for capturing one or more `[start_date, end_date]` ranges; supports `multiple` for sortable lists of ranges, single mode is constrained to one range
 - Array value validation (`render_array_error()`) on `DateTimeOption` when `multiple` is enabled and on `DateTimeRangeOption` (always)
@@ -56,11 +63,13 @@ All notable changes to this project will be documented in this file.
 - `ColorOption` refactored to support `swatches` type alongside existing `spectrum` and default WordPress pickers
 
 ### Fixed
+- `ColorOption` (spectrum type) -- changed `preferredFormat` from `'hex'` to `'rgb'`. Spectrum 1.8.x's tinycolor emits hex8 in `#AARRGGBB` (Java/Android) byte order, which CSS interprets as `#RRGGBBAA`, so saved values rendered as a completely different color than the user picked. `rgb` is unambiguous and supports the alpha channel via `rgba()`.
+- `ExampleJsonMediaOption` -- Vue's `:value` binding updates the DOM property but doesn't fire native `input`/`change` events, so external listeners (live previews, form-state trackers) never saw the value change. The component now dispatches both events on the hidden input after the `json` watcher commits.
 - Missing `</script>` closing tags in SelectOption and PostTypeSelectOption
 - `.wao-vue-wrap { display: none !important }` preventing Vue multi-select components from rendering
 - Missing `@click` handler on ExampleJsonMediaOption "Remove Image" button
 - Uninitialized `$date` variable in DateTimeOption when value is empty
-- Color picker panel clipped by `overflow: hidden` inside OptionsContainer — body now uses `overflow: visible` when expanded
+- Color picker panel clipped by `overflow: hidden` inside OptionsContainer -- body now uses `overflow: visible` when expanded
 
 ### Changed (Refactor)
 - Rebranded namespace from `Zawntech\WPAdminOptions` to `AllegedWizard\WPAdminOptions`

@@ -37,6 +37,8 @@ class OptionsContainer
         }
 
         $collapsed_class = $collapsed ? ' wao-collapsed' : '';
+
+        do_action( 'wao_options_container_before_render', $this->args );
         ?>
         <div class="wao-container<?= $collapsed_class; ?>" id="wao-container-<?= $key; ?>" data-container-key="<?= $key; ?>">
             <div class="wao-container-header">
@@ -49,12 +51,15 @@ class OptionsContainer
                 <button type="button" class="wao-container-toggle" aria-label="Toggle section">&#x25BE;</button>
             </div>
             <div class="wao-container-body">
+                <?php do_action( 'wao_options_container_body_start', $this->args ); ?>
                 <table class="form-table wao-container-table">
                     <?= $fields_html; ?>
                 </table>
+                <?php do_action( 'wao_options_container_body_end', $this->args ); ?>
             </div>
         </div>
         <?php
+        do_action( 'wao_options_container_after_render', $this->args );
         add_action( 'admin_footer', [ $this, 'render_scripts' ] );
     }
 

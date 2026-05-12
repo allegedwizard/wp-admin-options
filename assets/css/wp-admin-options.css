@@ -79,6 +79,149 @@
     min-width: 0 !important;
 }
 
+/* ==========================================================================
+   Inline color picker (via `with_color` arg on InputOption / TextareaOption)
+   ==========================================================================
+   The color picker should appear visually attached to the input, sharing a
+   border, height, and corner radius — like the copy / reveal buttons.
+*/
+.wao-input-has-color {
+    align-items: stretch !important;
+    gap: 0 !important;
+}
+
+/* Textarea variant: align picker to the top of the textarea, but still flush. */
+.wao-input-has-color.wao-textarea-color-wrap {
+    align-items: stretch !important;
+}
+.wao-input-has-color.wao-textarea-color-wrap > .wao-input {
+    flex: 1 !important;
+}
+
+/* When the input is followed by buttons (copy/reveal/color), drop its
+   right-corner radii so the trailing controls own the right edge. */
+.wao-input-has-color > .wao-input {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.wao-input-color-inline {
+    flex: 0 0 auto !important;
+    display: inline-flex !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+}
+
+/* Hide the original text input that spectrum/wpColorPicker decorate. */
+.wao-input-color-inline input[type="text"].wao-input-color-picker {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ----- spectrum picker ----- */
+.wao-input-color-inline .sp-replacer {
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border: 1px solid var(--wao-border) !important;
+    border-left: none !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: var(--wao-radius) !important;
+    border-bottom-right-radius: var(--wao-radius) !important;
+    background-color: var(--wao-bg-muted) !important;
+    box-shadow: var(--wao-shadow-sm) !important;
+    cursor: pointer !important;
+    transition: all var(--wao-transition) !important;
+    color: var(--wao-text-muted) !important;
+    line-height: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+}
+.wao-input-color-inline .sp-replacer:hover,
+.wao-input-color-inline .sp-replacer.sp-active {
+    background-color: #e5e7eb !important;
+    color: var(--wao-text) !important;
+}
+.wao-input-color-inline .sp-replacer:focus-visible {
+    outline: none !important;
+    border-color: var(--wao-border-focus) !important;
+    box-shadow: 0 0 0 3px var(--wao-ring) !important;
+    z-index: 1 !important;
+}
+.wao-input-color-inline .sp-preview {
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 !important;
+    border: 1px solid var(--wao-border) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    position: relative !important;
+    /* Photoshop-style checkerboard so transparency shows through. */
+    background-color: #fff !important;
+    background-image:
+        linear-gradient(45deg, #d4d4d4 25%, transparent 25%),
+        linear-gradient(-45deg, #d4d4d4 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #d4d4d4 75%),
+        linear-gradient(-45deg, transparent 75%, #d4d4d4 75%) !important;
+    background-size: 10px 10px !important;
+    background-position: 0 0, 0 5px, 5px -5px, -5px 0 !important;
+}
+.wao-input-color-inline .sp-preview-inner {
+    width: 100% !important;
+    height: 100% !important;
+    border: 0 !important;
+}
+.wao-input-color-inline .sp-dd {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    font-size: 10px !important;
+    color: var(--wao-text-muted) !important;
+    line-height: 1 !important;
+}
+
+/* ----- wp-color-picker (default type) ----- */
+.wao-input-color-inline .wp-picker-container {
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: stretch !important;
+}
+.wao-input-color-inline .wp-picker-container .wp-color-result.button {
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border: 1px solid var(--wao-border) !important;
+    border-left: none !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: var(--wao-radius) !important;
+    border-bottom-right-radius: var(--wao-radius) !important;
+    background-color: var(--wao-bg-muted) !important;
+    box-shadow: var(--wao-shadow-sm) !important;
+    padding: 0 12px 0 36px !important;
+    color: var(--wao-text-muted) !important;
+}
+.wao-input-color-inline .wp-picker-container .wp-color-result.button:hover {
+    background-color: #e5e7eb !important;
+    color: var(--wao-text) !important;
+}
+
+/* ----- swatches Vue picker wrap ----- */
+.wao-input-color-inline .wao-swatches-wrap {
+    display: inline-flex !important;
+    align-items: stretch !important;
+}
+
 .wao-copy-btn {
     display: inline-flex !important;
     align-items: center !important;
@@ -743,7 +886,7 @@ input[type="checkbox"].wao-toggle:focus {
     white-space: normal !important;
 }
 
-/* Left-pointing caret */
+/* Left-pointing caret (tooltip is to the right of the icon) */
 .wao-help .wao-help-text::before {
     content: '' !important;
     position: absolute !important;
@@ -757,7 +900,17 @@ input[type="checkbox"].wao-toggle:focus {
     border-right: 6px solid #1f2937 !important;
 }
 
-.wao-help:hover .wao-help-text {
+/* Right-pointing caret (tooltip flipped to the left of the icon to avoid
+   overflowing the viewport — applied by JS via .wao-help-text-flipped). */
+.wao-help .wao-help-text-flipped::before {
+    left: auto !important;
+    right: -6px !important;
+    border-right: none !important;
+    border-left: 6px solid #1f2937 !important;
+}
+
+.wao-help:hover .wao-help-text,
+.wao-help:focus .wao-help-text {
     display: block !important;
 }
 
@@ -877,6 +1030,16 @@ input[type="checkbox"].wao-toggle:focus {
 .wao-attachment-item img {
     max-width: 300px !important;
     border-radius: 4px !important;
+    /* Photoshop-style checkerboard so transparent images (e.g. white logos on a
+       white card) are clearly visible. */
+    background-color: #fff !important;
+    background-image:
+        linear-gradient(45deg, #d4d4d4 25%, transparent 25%),
+        linear-gradient(-45deg, #d4d4d4 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #d4d4d4 75%),
+        linear-gradient(-45deg, transparent 75%, #d4d4d4 75%) !important;
+    background-size: 16px 16px !important;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0 !important;
 }
 
 .wao-attachment-item video {

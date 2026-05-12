@@ -602,7 +602,12 @@
         $(selector).spectrum({
           showInput: true,
           showAlpha: true,
-          preferredFormat: 'hex',
+          // 'rgb' outputs rgb(r,g,b) when alpha=1, rgba(r,g,b,a) otherwise.
+          // We do NOT use 'hex8' here: spectrum 1.8.x's tinycolor outputs hex8
+          // in #AARRGGBB order (Java/Android), which CSS interprets as
+          // #RRGGBBAA — so the saved value renders as a completely different
+          // colour than the one the user picked. 'rgb' is unambiguous.
+          preferredFormat: 'rgb',
           allowEmpty: true
         });
       } else {
@@ -932,6 +937,21 @@
                 return item;
               });
             }
+          },
+
+          // Vue's `:value` binding updates the DOM property but does NOT fire native
+          // input/change events. Dispatch them manually so external listeners
+          // (e.g. live previews, form-state trackers) can react to value changes.
+          watch: {
+            json: function () {
+              var key = config.key;
+              this.$nextTick(function () {
+                var input = document.querySelector('input[name="' + key + '"]');
+                if (!input) return;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+              });
+            }
           }
         }
       );
@@ -1168,5 +1188,81 @@
     }
 
   };
+
+  /* ------------------------------------------------------------------ */
+  /*  Help tooltip positioning                                           */
+  /* ------------------------------------------------------------------ */
+  /*
+   * The .wao-help-text tooltip is `position: absolute` against its .wao-help
+   * parent. When the field lives inside an ancestor with `overflow: hidden`
+   * (e.g. .wao-container), the tooltip gets clipped at the container edge.
+   *
+   * On hover we switch the tooltip to `position: fixed` with viewport-anchored
+   * coords derived from the help icon's bounding rect. Fixed-positioning
+   * escapes any overflow:hidden ancestor (only transform/filter on an ancestor
+   * would still trap it, and the library doesn't apply those to its chrome).
+   *
+   * If the tooltip would overflow the right viewport edge, flip to the left
+   * side of the icon.
+   */
+  function positionHelpTip(help) {
+    var tip = help.querySelector('.wao-help-text');
+    if (!tip) return;
+    var rect = help.getBoundingClientRect();
+    // Apply fixed positioning first so we can measure the tip's natural size.
+    tip.style.setProperty('position', 'fixed', 'important');
+    tip.style.setProperty('top', (rect.top + rect.height / 2) + 'px', 'important');
+    tip.style.setProperty('transform', 'translateY(-50%)', 'important');
+    tip.style.setProperty('left', '-9999px', 'important');
+    tip.style.setProperty('visibility', 'hidden', 'important');
+    tip.style.setProperty('display', 'block', 'important');
+
+    var tipWidth = tip.offsetWidth;
+    var spaceRight = window.innerWidth - rect.right - 10;
+    var flip = (tipWidth > spaceRight) && (rect.left > tipWidth + 10);
+
+    if (flip) {
+      tip.style.setProperty('left', (rect.left - 10 - tipWidth) + 'px', 'important');
+      tip.classList.add('wao-help-text-flipped');
+    } else {
+      tip.style.setProperty('left', (rect.right + 10) + 'px', 'important');
+      tip.classList.remove('wao-help-text-flipped');
+    }
+
+    tip.style.removeProperty('visibility');
+    tip.style.removeProperty('display');
+  }
+
+  function resetHelpTip(help) {
+    var tip = help.querySelector('.wao-help-text');
+    if (!tip) return;
+    tip.style.cssText = '';
+    tip.classList.remove('wao-help-text-flipped');
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    var help = e.target && e.target.closest && e.target.closest('.wao-help');
+    if (help) positionHelpTip(help);
+  }, false);
+
+  document.addEventListener('mouseout', function (e) {
+    var help = e.target && e.target.closest && e.target.closest('.wao-help');
+    if (!help) return;
+    var to = e.relatedTarget;
+    if (to && help.contains(to)) return;
+    resetHelpTip(help);
+  }, false);
+
+  document.addEventListener('focusin', function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains('wao-help')) {
+      positionHelpTip(e.target);
+    }
+  }, false);
+
+  document.addEventListener('focusout', function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains('wao-help')) {
+      resetHelpTip(e.target);
+    }
+  }, false);
 
 })(jQuery, Vue);
