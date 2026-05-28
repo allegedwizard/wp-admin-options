@@ -6,6 +6,29 @@
  */
 
 /* ==========================================================================
+   FOUC guard for Vue-driven fields
+   ==========================================================================
+
+   Vue mounts on `window.load`, after which it compiles each field's
+   template and replaces the DOM with the rendered output. Before that
+   point the browser shows the template literally: `v-if` and `v-for`
+   blocks all render at once (e.g. "No attachment is assigned." appears
+   right next to the empty `wao-attachment-item` placeholder), and any
+   `{{ ... }}` mustaches inside those blocks flash through as text.
+
+   Vue strips `v-if` / `v-for` attributes from the DOM as it compiles,
+   so a CSS rule keyed on those attribute names naturally stops matching
+   the moment Vue takes over -- no JS hook needed for cleanup.
+
+   Applies to every Vue-using field: AttachmentOption, SelectOption,
+   PostType/Taxonomy/UserSelectOption, ExampleJsonOption,
+   ExampleJsonMediaOption, DateTime/DateTimeRange/DurationOption. */
+[v-if],
+[v-for] {
+    display: none;
+}
+
+/* ==========================================================================
    CSS Custom Properties
    ========================================================================== */
 

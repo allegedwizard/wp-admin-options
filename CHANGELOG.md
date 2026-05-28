@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [dev]
 
 ### Added
+- FOUC guard rule `[v-if], [v-for] { display: none }` at the top of `assets/css/wp-admin-options.css`. Vue mounts on `window.load`, before which the browser renders each field's template literally -- "No attachment is assigned" appearing alongside an empty `wao-attachment-item` placeholder, mustache text like `{{ item.title }}` flashing through, etc. Vue strips `v-if` / `v-for` attributes during template compilation, so the rule self-disarms the moment a field finishes mounting (no JS hook needed). Covers every Vue-using field: AttachmentOption, SelectOption, PostType/Taxonomy/UserSelectOption, ExampleJsonOption, ExampleJsonMediaOption, DateTime/DateTimeRange/DurationOption.
 - `with_color` parameter on `InputOption` and `TextareaOption` -- renders an inline color picker visually attached to the input/textarea (shared border, height, and corner radius). Accepts `true` / `'default'` (wp-color-picker / Iris), `'spectrum'`, or `'swatches'`. Picker value is saved as a sibling meta key suffixed `_color` (no extra wiring required).
 - `with_color_value` and `with_color_swatches` parameters on `AbstractAdminOption` for the inline color picker's initial value and preset swatch array.
 - Color picker helpers on `AbstractAdminOption`: `resolve_color_picker_type()`, `should_render_with_color()`, `render_color_picker_inline()`, `enqueue_color_picker_assets()`, `render_color_picker_init()`.
