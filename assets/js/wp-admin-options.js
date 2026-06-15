@@ -1003,6 +1003,14 @@
      * @param {Array}  [config.items]  - multiple mode: [{ date, time, _uid }, ...]
      */
     DateTimeOption: function (config) {
+      // When the time input runs at minute granularity (no seconds component),
+      // normalize the saved value so a trailing HH:MM becomes HH:MM:00 -- consumers
+      // expect a full timestamp. A value already carrying seconds is left as-is.
+      var withSeconds = function (value) {
+        value = (value || '').trim();
+        return value.replace(/(^|\s)(\d{2}:\d{2})$/, '$1$2:00');
+      };
+
       if (config.mode === 'multiple') {
         var opts = _merge(
           _dragMixin(),
@@ -1015,7 +1023,7 @@
             computed: {
               json: function () {
                 return JSON.stringify(this.items.map(function (item) {
-                  return ((item.date || '') + ' ' + (item.time || '')).trim();
+                  return withSeconds(((item.date || '') + ' ' + (item.time || '')).trim());
                 }));
               }
             },
@@ -1062,8 +1070,7 @@
         },
         computed: {
           json: function () {
-            var timeString = this.date + ' ' + this.time;
-            return timeString.trim();
+            return withSeconds((this.date + ' ' + this.time).trim());
           }
         },
         mounted: function () {

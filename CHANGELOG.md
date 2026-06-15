@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [dev]
 
 ### Added
+- `seconds` parameter on `DateTimeOption` (default **off**). With it off, the time input runs at minute granularity (`HH:MM`); pass `'seconds' => true` to allow `HH:MM:SS` (adds `step="1"` and formats the value as `H:i:s`).
 - FOUC guard rule `[v-if], [v-for] { display: none }` at the top of `assets/css/wp-admin-options.css`. Vue mounts on `window.load`, before which the browser renders each field's template literally -- "No attachment is assigned" appearing alongside an empty `wao-attachment-item` placeholder, mustache text like `{{ item.title }}` flashing through, etc. Vue strips `v-if` / `v-for` attributes during template compilation, so the rule self-disarms the moment a field finishes mounting (no JS hook needed). Covers every Vue-using field: AttachmentOption, SelectOption, PostType/Taxonomy/UserSelectOption, ExampleJsonOption, ExampleJsonMediaOption, DateTime/DateTimeRange/DurationOption.
 - `with_color` parameter on `InputOption` and `TextareaOption` -- renders an inline color picker visually attached to the input/textarea (shared border, height, and corner radius). Accepts `true` / `'default'` (wp-color-picker / Iris), `'spectrum'`, or `'swatches'`. Picker value is saved as a sibling meta key suffixed `_color` (no extra wiring required).
 - `with_color_value` and `with_color_swatches` parameters on `AbstractAdminOption` for the inline color picker's initial value and preset swatch array.
@@ -64,6 +65,7 @@ All notable changes to this project will be documented in this file.
 - `ColorOption` refactored to support `swatches` type alongside existing `spectrum` and default WordPress pickers
 
 ### Fixed
+- `DateTimeOption` time input was uneditable when the stored value carried seconds: it rendered `<input type="time">` with no `step` but seeded the value as `H:i:s`, so the browser rejected it ("Please select a valid value. The two nearest valid values are ..."). The input now defaults to minute granularity (`H:i`, no `step`) and only emits `step="1"` + `H:i:s` when `seconds` is enabled. The saved value also normalizes a trailing `HH:MM` to `HH:MM:00`, so a no-seconds entry stores a full timestamp.
 - `ColorOption` (spectrum type) -- changed `preferredFormat` from `'hex'` to `'rgb'`. Spectrum 1.8.x's tinycolor emits hex8 in `#AARRGGBB` (Java/Android) byte order, which CSS interprets as `#RRGGBBAA`, so saved values rendered as a completely different color than the user picked. `rgb` is unambiguous and supports the alpha channel via `rgba()`.
 - `ExampleJsonMediaOption` -- Vue's `:value` binding updates the DOM property but doesn't fire native `input`/`change` events, so external listeners (live previews, form-state trackers) never saw the value change. The component now dispatches both events on the hidden input after the `json` watcher commits.
 - Missing `</script>` closing tags in SelectOption and PostTypeSelectOption

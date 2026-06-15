@@ -14,14 +14,15 @@ class DateTimeOption extends AbstractAdminOption
     }
 
     public function render_single() {
-        $key = esc_attr( $this->args['key'] );
+        $key  = esc_attr( $this->args['key'] );
+        $step = $this->time_step_attr();
         ?>
         <tr id="<?= $key; ?>">
             <?php $this->render_option_label(); ?>
             <td>
                 <div class="wao-datetime">
                     <input type="date" v-model="date" required>
-                    <input type="time" v-model="time" required>
+                    <input type="time" v-model="time"<?= $step; ?> required>
                 </div>
                 <input type="hidden" name="<?= $key; ?>" :value="json">
             </td>
@@ -33,6 +34,7 @@ class DateTimeOption extends AbstractAdminOption
     public function render_multiple() {
         $key = esc_attr( $this->args['key'] );
         $description = trim( $this->args['description'] );
+        $step = $this->time_step_attr();
         ?>
         <tr id="row-<?= $key; ?>">
             <?php $this->render_option_label(); ?>
@@ -56,7 +58,7 @@ class DateTimeOption extends AbstractAdminOption
                             <span class="wao-drag-handle" title="Drag to reorder">&#x2630;</span>
                             <div class="wao-datetime">
                                 <input type="date" v-model="item.date" required>
-                                <input type="time" v-model="item.time" required>
+                                <input type="time" v-model="item.time"<?= $step; ?> required>
                             </div>
                             <div class="wao-controls">
                                 <button type="button" class="button" :disabled="!canMoveUp(i)" @click="moveUp(i)">&#x25B2;</button>
@@ -80,6 +82,7 @@ class DateTimeOption extends AbstractAdminOption
 
     public function render_script() {
         $key = esc_attr( $this->args['key'] );
+        $fmt = $this->time_format();
 
         if ( ! empty( $this->args['multiple'] ) ) {
             $items = [];
@@ -92,7 +95,7 @@ class DateTimeOption extends AbstractAdminOption
                 $ts = strtotime( $val );
                 $items[] = [
                     'date' => $ts ? date( 'Y-m-d', $ts ) : '',
-                    'time' => $ts ? date( 'H:i:s', $ts ) : '',
+                    'time' => $ts ? date( $fmt, $ts ) : '',
                     '_uid' => uniqid( 'dt_', true ),
                 ];
             }
@@ -105,7 +108,7 @@ class DateTimeOption extends AbstractAdminOption
                 $ts = strtotime( $value );
                 if ( $ts ) {
                     $date = date( 'Y-m-d', $ts );
-                    $time = date( 'H:i:s', $ts );
+                    $time = date( $fmt, $ts );
                 }
             }
             $args = [ 'key' => $key, 'mode' => 'single', 'date' => $date, 'time' => $time ];
@@ -117,4 +120,25 @@ class DateTimeOption extends AbstractAdminOption
         <?php
     }
 
+    /**
+     * Whether the time input accepts a seconds component. Off by default
+     * (HH:MM); pass `'seconds' => true` to the option to allow HH:MM:SS.
+     */
+    protected function allow_seconds(): bool {
+        return ! empty( $this->args['seconds'] );
+    }
+
+    /**
+     * `step` attribute fragment for the <input type="time">. `step="1"` enables
+     * the seconds component; omitting step leaves the browser default (minutes).
+     * A value carrying seconds with no step is rejected as "not a valid value".
+     */
+    protected function time_step_attr(): string {
+        return $this->allow_seconds() ? ' step="1"' : '';
+    }
+
+    /** date() format for the time value, matching the input's granularity. */
+    protected function time_format(): string {
+        return $this->allow_seconds() ? 'H:i:s' : 'H:i';
+    }
 }
