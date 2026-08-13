@@ -215,6 +215,21 @@ class RenderTestFields
                     'description' => 'A multi-value select.',
                     'help'        => 'Select multiple values. Click to add, click the × to remove. Values are stored as an array.',
                 ]);
+                new SelectOption([
+                    'key'         => '_test_select_checkboxes',
+                    'label'       => 'Select (Checkboxes)',
+                    'value'       => ['b', 'd'],
+                    'multiple'    => true,
+                    'format'      => 'checkboxes',
+                    'options'     => [
+                        'a' => 'Alpha',
+                        'b' => 'Beta',
+                        'c' => 'Gamma',
+                        'd' => 'Delta',
+                    ],
+                    'description' => 'A multi-value select rendered as a checkbox group.',
+                    'help'        => 'Check any combination of values. Posts natively as an array; a hidden sentinel keeps an all-unchecked state saveable.',
+                ]);
             },
         ]);
 

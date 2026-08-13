@@ -41,6 +41,9 @@ abstract class AbstractAdminOption
 
         // Select
         'options' => [],
+        // Multiple-select presentation: 'list' (Vue add/remove list) or
+        // 'checkboxes' (plain checkbox group posting `key[]`).
+        'format' => 'list',
 
         // Attachments
         'media_types' => ['image'],

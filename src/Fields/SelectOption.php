@@ -9,7 +9,11 @@ class SelectOption extends AbstractAdminOption
     public function render_admin_table() {
         $multiple = $this->args['multiple'];
         if ( $multiple ) {
-            $this->render_multiple();
+            if ( 'checkboxes' === $this->args['format'] ) {
+                $this->render_checkboxes();
+            } else {
+                $this->render_multiple();
+            }
         } else {
             $this->render_single();
         }
@@ -72,6 +76,49 @@ class SelectOption extends AbstractAdminOption
         </tr>
         <?php
         $this->maybe_trigger_select2();
+    }
+
+    /**
+     * Multiple selection rendered as a plain checkbox group.
+     *
+     * Posts natively as `{key}[]` (an array of checked values). A hidden
+     * sentinel input named `{key}` precedes the checkboxes so an
+     * all-unchecked state still posts the key (as an empty string), letting
+     * consumers clear the stored value.
+     */
+    public function render_checkboxes() {
+        if ( $this->render_array_error() ) return;
+        $args = $this->get_args();
+        $key = esc_attr( $args['key'] );
+        $values = (array) $args['value'];
+
+        ?>
+        <tr id="row-<?= $key; ?>">
+            <?php $this->render_option_label(); ?>
+            <td id="<?= $key; ?>-wrap">
+                <div class="wao-checkbox-group">
+                    <input type="hidden" name="<?= $key; ?>" value="">
+                    <?php
+                    foreach ( $args['options'] as $_value => $label ) {
+                        $checked = in_array( $_value, $values ) ? ' checked="checked"' : '';
+                        printf(
+                            '<label class="wao-checkbox-item"><input type="checkbox" class="wao-checkbox" name="%s[]" value="%s"%s><span class="wao-checkbox-text">%s</span></label>',
+                            $key,
+                            esc_attr( $_value ),
+                            $checked,
+                            esc_html( $label )
+                        );
+                    }
+                    ?>
+                </div>
+                <?php
+                if ( !empty( $args['description'] ) ) {
+                    printf( '<p><code>%s</code></p>', $args['description'] );
+                }
+                ?>
+            </td>
+        </tr>
+        <?php
     }
 
     public function render_multiple() {
