@@ -104,22 +104,36 @@ class WPAdminOptions
         // WP Admin Options assets
         if ( ! static::$test_mode ) {
             $assets_url = static::get_assets_url();
+            // Several plugins may each vendor this package; the handle is
+            // shared, so the copy with the newest assets wins and the file
+            // mtime doubles as a cache-buster.
+            $css_file = dirname( __DIR__, 2 ) . '/assets/css/wp-admin-options.css';
+            $js_file = dirname( __DIR__, 2 ) . '/assets/js/wp-admin-options.js';
+            $css_version = (string) ( file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0' );
+            $js_version = (string) ( file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0' );
+
+            if ( static::registered_is_older( 'wp-admin-options', $css_version, 'style' ) ) {
+                wp_deregister_style( 'wp-admin-options' );
+            }
             if ( ! wp_style_is( 'wp-admin-options', 'registered' ) ) {
                 wp_register_style(
                     'wp-admin-options',
                     $assets_url . 'css/wp-admin-options.css',
                     [],
-                    '1.0.0'
+                    $css_version
                 );
             }
             wp_enqueue_style( 'wp-admin-options' );
 
+            if ( static::registered_is_older( 'wp-admin-options', $js_version, 'script' ) ) {
+                wp_deregister_script( 'wp-admin-options' );
+            }
             if ( ! wp_script_is( 'wp-admin-options', 'registered' ) ) {
                 wp_register_script(
                     'wp-admin-options',
                     $assets_url . 'js/wp-admin-options.js',
                     [ 'jquery', 'vue', 'select2' ],
-                    '1.0.0',
+                    $js_version,
                     true
                 );
             }
@@ -156,5 +170,24 @@ class WPAdminOptions
         if ( file_exists( $js_file ) ) {
             echo '<script>' . file_get_contents( $js_file ) . '</script>';
         }
+    }
+
+    /**
+     * Whether a handle is already registered (by another plugin's copy of
+     * this package) with assets older than ours, judged by the mtime-based
+     * version string.
+     *
+     * @param string $handle
+     * @param string $version
+     * @param string $kind 'style' or 'script'
+     * @return bool
+     */
+    protected static function registered_is_older( $handle, $version, $kind ) {
+        $registry = 'style' === $kind ? wp_styles() : wp_scripts();
+        if ( ! isset( $registry->registered[ $handle ] ) ) {
+            return false;
+        }
+        $current = (string) $registry->registered[ $handle ]->ver;
+        return is_numeric( $current ) && is_numeric( $version ) && (int) $current < (int) $version;
     }
 }

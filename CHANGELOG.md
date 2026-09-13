@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [dev]
 
+### Changed
+- Assets are registered with their file mtime as the version (cache-busting on every change) and, when another plugin's vendored copy of this package already registered the shared `wp-admin-options` handle with older assets, that registration is replaced so the newest copy on the site wins.
+
 ### Added
 - `OptionsRow` structure (`AllegedWizard\WPAdminOptions\Structure\OptionsRow`): lays several fields out side by side on one row of an `OptionsContainer`. Takes `key`, `columns` (equal columns, default 2) or `widths` (CSS grid track sizes such as `['2fr', '1fr']`), and a `fields` callable that instantiates the option classes exactly as a container does. Each field keeps its normal `<tr>` markup inside a single-row table per grid column, with the label stacked above the input; columns collapse to one on narrow screens. CSS: `.wao-row`, `.wao-columns`, `.wao-column`, `.wao-column-table`.
 - `format` parameter on `SelectOption` for multiple mode: `'list'` (default, the existing Vue add/remove/reorder list) or `'checkboxes'` (a plain checkbox group with no Vue involvement). Checkbox mode posts natively as `key[]` (an array of checked values) and emits a hidden sentinel input named `key` before the checkboxes, so an all-unchecked state still posts the key (as an empty string) and consumers can clear the stored value. Declared on `AbstractAdminOption` defaults.
