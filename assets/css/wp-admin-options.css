@@ -1873,3 +1873,49 @@ input[type="checkbox"].wao-checkbox:checked::before {
     font-size: 13px;
     line-height: 1.5;
 }
+
+/* ---------------------------------------------------------------------
+   OptionsRow: several fields side by side on one form-table row. Each
+   field keeps its own <tr> inside a single-row table per grid column, with
+   the label stacked above the input.
+   ------------------------------------------------------------------- */
+.wao-row > .wao-row-cell {
+    padding: 15px 10px 15px 0;
+}
+
+.wao-columns {
+    display: grid;
+    gap: 16px;
+    align-items: start;
+}
+
+.wao-column-table.form-table,
+.wao-column-table.form-table tr,
+.wao-column-table.form-table th,
+.wao-column-table.form-table td {
+    display: block;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.wao-column-table.form-table th {
+    padding-bottom: 6px;
+    line-height: 1.4;
+}
+
+.wao-column-table.form-table td {
+    padding-bottom: 0;
+}
+
+.wao-column-table.form-table select,
+.wao-column-table.form-table .select2-container {
+    width: 100% !important;
+}
+
+@media (max-width: 782px) {
+    .wao-columns {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
