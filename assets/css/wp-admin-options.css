@@ -1919,3 +1919,17 @@ input[type="checkbox"].wao-checkbox:checked::before {
         grid-template-columns: minmax(0, 1fr) !important;
     }
 }
+
+/* Inside an OptionsContainer the container rules above (block rows with
+   padding and dividers) also reach the per-column tables; neutralise them
+   so a column shows just its label and input. */
+.wao-container-table .wao-row > .wao-row-cell {
+    padding: 0 !important;
+}
+
+.wao-container-table .wao-column-table tr,
+.wao-container-table .wao-column-table tr:first-child,
+.wao-container-table .wao-column-table tr:last-child {
+    padding: 0 !important;
+    border-bottom: none !important;
+}
