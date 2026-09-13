@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [dev]
 
 ### Changed
+- Newest vendored copy wins, for PHP, CSS, and JS alike. `src/bootstrap.php` is Composer `files`-autoloaded from every copy of the package: each run registers its copy (src path + `src/version.php`) in a shared registry and keeps ONE shared autoloader in front of every plugin's Composer loader (re-prepended on `plugins_loaded` at `PHP_INT_MIN`, since later plugins prepend their own loaders). That autoloader resolves `AllegedWizard\WPAdminOptions\*` classes from the registered copy with the highest version, and because the Bootstrap class enqueues assets relative to its own file, the same copy's CSS and JS are served. Bump `src/version.php` with every release; copies without it count as 0.0.0.
+- Single-select (select2) boxes use the same vertical padding as text inputs, so a select and an input on one `OptionsRow` are the same height.
 - Assets are registered with their file mtime as the version (cache-busting on every change) and, when another plugin's vendored copy of this package already registered the shared `wp-admin-options` handle with older assets, that registration is replaced so the newest copy on the site wins.
 
 ### Added

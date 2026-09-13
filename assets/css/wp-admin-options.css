@@ -1316,7 +1316,9 @@ input[type="checkbox"].wao-checkbox:checked::before {
 
 .select2-container--default .select2-selection--single {
     height: auto !important;
-    padding: 6px 12px !important;
+    /* Same vertical padding as .wao-input so a select lines up with a
+       text input beside it. */
+    padding: 8px 12px !important;
     border: 1px solid var(--wao-border) !important;
     border-radius: var(--wao-radius) !important;
     box-shadow: var(--wao-shadow-sm) !important;

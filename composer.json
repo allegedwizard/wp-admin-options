@@ -11,6 +11,9 @@
     ],
     "minimum-stability": "dev",
     "autoload": {
+        "files": [
+            "src/bootstrap.php"
+        ],
         "psr-4": {
             "AllegedWizard\\WPAdminOptions\\": "src/"
         }
