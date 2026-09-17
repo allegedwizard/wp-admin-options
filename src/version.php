@@ -5,4 +5,4 @@
  * the package, and the shared loader (src/bootstrap.php) serves classes and
  * assets from the copy with the highest version.
  */
-return '1.1.0';
+return '1.2.0';

@@ -380,6 +380,16 @@ class RenderTestFields
                     'value'       => [],
                     'description' => 'A searchable multi-term selector.',
                 ]);
+                new TaxonomySelectOption([
+                    'key'         => '_test_taxonomy_select_checkboxes',
+                    'label'       => 'Taxonomy Select (Checkboxes)',
+                    'taxonomy'    => 'category',
+                    'multiple'    => true,
+                    'format'      => 'checkboxes',
+                    'value'       => [],
+                    'description' => 'A multi-term selector rendered as a checkbox group.',
+                    'help'        => 'Check any combination of terms. Posts term ids natively as an array; a hidden sentinel keeps an all-unchecked state saveable.',
+                ]);
                 new UserSelectOption([
                     'key'         => '_test_user_select',
                     'label'       => 'User Select (Single)',

@@ -9,7 +9,11 @@ class TaxonomySelectOption extends AbstractAdminOption
     public function render_admin_table() {
         $multiple = $this->args['multiple'];
         if ( $multiple ) {
-            $this->render_multiple();
+            if ( 'checkboxes' === $this->args['format'] ) {
+                $this->render_checkboxes();
+            } else {
+                $this->render_multiple();
+            }
         } else {
             $this->render_single();
         }
@@ -86,6 +90,54 @@ class TaxonomySelectOption extends AbstractAdminOption
                     ?>
                     WPAdminOptions.TaxonomySelectOption(<?= json_encode( $args ); ?>);
                 });</script>
+            </td>
+        </tr>
+        <?php
+    }
+
+    /**
+     * Multiple selection rendered as a plain checkbox group, one checkbox per
+     * term (term id => name), like SelectOption's checkbox format.
+     *
+     * Posts natively as `{key}[]` (an array of checked term ids). A hidden
+     * sentinel input named `{key}` precedes the checkboxes so an
+     * all-unchecked state still posts the key (as an empty string), letting
+     * consumers clear the stored terms.
+     */
+    public function render_checkboxes() {
+        if ( $this->render_array_error() ) return;
+        $args = $this->get_args();
+        $key = esc_attr( $args['key'] );
+        $values = array_map( 'intval', (array) $args['value'] );
+
+        ?>
+        <tr id="row-<?= $key; ?>">
+            <?php $this->render_option_label(); ?>
+            <td id="<?= $key; ?>-wrap">
+                <div class="wao-checkbox-group">
+                    <input type="hidden" name="<?= $key; ?>" value="">
+                    <?php
+                    foreach ( $args['options'] as $_value => $label ) {
+                        // Skip the "Select {taxonomy}..." placeholder option.
+                        if ( '' === $_value ) {
+                            continue;
+                        }
+                        $checked = in_array( (int) $_value, $values, true ) ? ' checked="checked"' : '';
+                        printf(
+                            '<label class="wao-checkbox-item"><input type="checkbox" class="wao-checkbox" name="%s[]" value="%s"%s><span class="wao-checkbox-text">%s</span></label>',
+                            $key,
+                            esc_attr( $_value ),
+                            $checked,
+                            esc_html( $label )
+                        );
+                    }
+                    ?>
+                </div>
+                <?php
+                if ( !empty( $args['description'] ) ) {
+                    printf( '<p><code>%s</code></p>', $args['description'] );
+                }
+                ?>
             </td>
         </tr>
         <?php
